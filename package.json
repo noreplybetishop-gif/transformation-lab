@@ -22,5 +22,8 @@
     "basics:gate": "npm run gate -w transformation-lab-basics",
     "basics:certify": "npm run certify -w transformation-lab-basics",
     "basics:smoke": "npm run smoke -w transformation-lab-basics"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2"
   }
 }

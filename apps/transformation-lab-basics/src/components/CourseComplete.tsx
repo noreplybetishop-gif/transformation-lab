@@ -22,6 +22,8 @@ export default function CourseComplete() {
   })
 
   const loadLesson = useGameStore((s) => s.loadLesson)
+  const currentLessonId = useGameStore((s) => s.currentLessonId)
+  const isIntermediate = currentLessonId >= 15
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://transformation-lab.datagym.io')}`
 
   return (
@@ -63,7 +65,7 @@ export default function CourseComplete() {
           marginBottom: '8px',
         }}
       >
-        {t('courseComplete.eyebrow')}
+        {isIntermediate ? 'INTERMEDIATE LEVEL COMPLETE' : t('courseComplete.eyebrow')}
       </div>
       <h3
         style={{
@@ -75,7 +77,9 @@ export default function CourseComplete() {
           lineHeight: 1.3,
         }}
       >
-        {t('courseComplete.title')}
+        {isIntermediate
+          ? "You've mastered intermediate dbt engineering!"
+          : t('courseComplete.title')}
       </h3>
       <p
         style={{
@@ -85,33 +89,54 @@ export default function CourseComplete() {
           lineHeight: 1.6,
         }}
       >
-        {renderInline(t('courseComplete.body'))}
+        {isIntermediate
+          ? "You've tackled the real patterns production teams lean on: incremental processing, slowly changing dimensions (SCD2), modular Jinja macros, multi-schema architecture, and model contracts."
+          : renderInline(t('courseComplete.body'))}
       </p>
 
       <div style={{ marginBottom: '12px' }}>
         <SubLabel>{t('courseComplete.whatNext')}</SubLabel>
-        <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <NextStep>
-            {t('courseComplete.step1Lead')}
-            <ExtLink href="https://docs.getdbt.com/docs/core/installation-overview">{t('courseComplete.step1Link')}</ExtLink>
-          </NextStep>
-          <NextStep>
-            {t('courseComplete.step2Lead')}
-            <ExtLink href="https://github.com/dbt-labs/jaffle-shop">{t('courseComplete.step2Link')}</ExtLink>
-            {t('courseComplete.step2Tail')}
-          </NextStep>
-          <NextStep>
-            {t('courseComplete.step3Lead')}
-            <ExtLink href="https://docs.getdbt.com/docs/build/jinja-macros">{t('courseComplete.step3Macros')}</ExtLink>
-            {t('courseComplete.step3Sep')}
-            <ExtLink href="https://docs.getdbt.com/docs/build/incremental-models">{t('courseComplete.step3Incremental')}</ExtLink>
-            {t('courseComplete.step3Sep')}
-            <ExtLink href="https://docs.getdbt.com/docs/build/snapshots">{t('courseComplete.step3Snapshots')}</ExtLink>
-            {t('courseComplete.step3Sep')}
-            <ExtLink href="https://docs.getdbt.com/docs/build/packages">{t('courseComplete.step3Packages')}</ExtLink>
-            {t('courseComplete.step3End')}
-          </NextStep>
-        </ul>
+        {isIntermediate ? (
+          <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <NextStep>
+              <span>Deploy your dbt models to Snowflake, BigQuery, or Databricks: </span>
+              <ExtLink href="https://docs.getdbt.com/docs/core/connect-data-platform/about-core-connections">Adapter setup guide</ExtLink>
+            </NextStep>
+            <NextStep>
+              <span>Automate runs with orchestration: </span>
+              <ExtLink href="https://docs.getdbt.com/docs/deploy/deployments">dbt deployments & schedules</ExtLink>
+            </NextStep>
+            <NextStep>
+              <span>Explore Advanced dbt: </span>
+              <ExtLink href="https://docs.getdbt.com/docs/build/python-models">Python models</ExtLink>
+              <span> · </span>
+              <ExtLink href="https://docs.getdbt.com/docs/build/semantic-models">Semantic Layer & Metrics</ExtLink>
+            </NextStep>
+          </ul>
+        ) : (
+          <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <NextStep>
+              {t('courseComplete.step1Lead')}
+              <ExtLink href="https://docs.getdbt.com/docs/core/installation-overview">{t('courseComplete.step1Link')}</ExtLink>
+            </NextStep>
+            <NextStep>
+              {t('courseComplete.step2Lead')}
+              <ExtLink href="https://github.com/dbt-labs/jaffle-shop">{t('courseComplete.step2Link')}</ExtLink>
+              {t('courseComplete.step2Tail')}
+            </NextStep>
+            <NextStep>
+              {t('courseComplete.step3Lead')}
+              <ExtLink href="https://docs.getdbt.com/docs/build/jinja-macros">{t('courseComplete.step3Macros')}</ExtLink>
+              {t('courseComplete.step3Sep')}
+              <ExtLink href="https://docs.getdbt.com/docs/build/incremental-models">{t('courseComplete.step3Incremental')}</ExtLink>
+              {t('courseComplete.step3Sep')}
+              <ExtLink href="https://docs.getdbt.com/docs/build/snapshots">{t('courseComplete.step3Snapshots')}</ExtLink>
+              {t('courseComplete.step3Sep')}
+              <ExtLink href="https://docs.getdbt.com/docs/build/packages">{t('courseComplete.step3Packages')}</ExtLink>
+              {t('courseComplete.step3End')}
+            </NextStep>
+          </ul>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

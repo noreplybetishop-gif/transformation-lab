@@ -236,3 +236,29 @@ export const SINGULAR_TEST_NO_FUTURE = `-- Returns rows where created_at is in t
 select *
 from {{ ref('stg_orders') }}
 where created_at > current_date`
+
+// ─── Intermediate datasets ──────────────────────────────────────────────────
+
+export const RAW_APP_EVENTS_CSV = `event_id,user_id,event_name,event_timestamp
+1,1,page_view,2024-03-01 09:00:00
+2,2,page_view,2024-03-01 09:15:00
+3,1,add_to_cart,2024-03-01 09:20:00
+4,3,page_view,2024-03-01 10:00:00
+5,1,checkout,2024-03-01 10:05:00
+6,4,page_view,2024-03-01 11:30:00`
+
+export const RAW_SUBSCRIPTIONS_CSV = `id,customer_id,plan,status,updated_at
+1,1,basic,active,2024-01-01 08:00:00
+2,2,pro,active,2024-01-05 10:00:00
+3,3,basic,cancelled,2024-01-12 12:00:00
+4,4,enterprise,active,2024-02-01 09:00:00
+5,5,pro,pending,2024-02-15 14:00:00`
+
+export const RAW_PAYMENTS_CSV = `id,order_id,payment_method,amount_cents,created_at
+1,101,credit_card,4200,2024-01-10 10:00:00
+2,102,bank_transfer,1850,2024-01-12 11:00:00
+3,103,credit_card,9900,2024-01-15 14:30:00
+4,104,gift_card,1275,2024-02-01 16:00:00
+5,105,credit_card,5500,2024-02-04 12:15:00
+6,106,bank_transfer,800,2024-02-09 09:45:00`
+

@@ -310,3 +310,15 @@ export function fileMatches(
   return pattern.test(content)
 }
 
+/** True if the most recent command was `dbt snapshot` (optionally matching a specific snapshot name). */
+export function snapshotRan(state: GameState, name?: string): boolean {
+  if (state.lastRun?.command !== 'snapshot') return false
+  return name ? state.ranModels.has(name) : true
+}
+
+/** True if the most recent command used `--full-refresh`. */
+export function usedFullRefresh(state: GameState): boolean {
+  return Boolean(state.lastRun?.usedFullRefresh)
+}
+
+

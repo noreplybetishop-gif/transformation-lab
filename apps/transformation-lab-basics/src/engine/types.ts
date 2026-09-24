@@ -13,6 +13,10 @@ export interface LastRunInfo {
   usedUpstream: boolean
   /** True if any selector term used the `model+` downstream operator. */
   usedDownstream: boolean
+  /** True if the command included `--full-refresh`. */
+  usedFullRefresh?: boolean
+  args?: string[]
+  raw?: string
 }
 
 export interface GameState {

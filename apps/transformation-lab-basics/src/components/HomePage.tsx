@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useGameStore } from '../store/gameStore'
-import { getLessonById, getLastLessonId } from '../lessons'
+import { getLessonById } from '../lessons'
 import { renderInline } from './Markdownish'
 import { dag } from '@datagym/design/tokens'
 import { type NodeLayer } from '../engine/dagBuilder'
@@ -16,17 +16,28 @@ import { type NodeLayer } from '../engine/dagBuilder'
 
 type StageId = 'basics' | 'intermediate' | 'advanced'
 const STAGE_ORDER: StageId[] = ['basics', 'intermediate', 'advanced']
-const LIVE: Record<StageId, boolean> = { basics: true, intermediate: false, advanced: false }
+const LIVE: Record<StageId, boolean> = { basics: true, intermediate: true, advanced: false }
 
 export default function HomePage() {
   const { t } = useTranslation()
   const loadLesson = useGameStore((s) => s.loadLesson)
   const lastLessonId = useGameStore((s) => s.lastLessonId)
-  const total = getLastLessonId()
-  const hasProgress = lastLessonId >= 1
-  const resumeTitle = hasProgress ? getLessonById(lastLessonId)?.title ?? '' : ''
 
-  const startBasics = () => void loadLesson(hasProgress ? lastLessonId : 1)
+  const hasBasicsProgress = lastLessonId >= 1 && lastLessonId <= 14
+  const resumeBasicsTitle = hasBasicsProgress ? getLessonById(lastLessonId)?.title ?? '' : ''
+  const startBasics = () => void loadLesson(hasBasicsProgress ? lastLessonId : 1)
+
+  const hasInterProgress = lastLessonId >= 15 && lastLessonId <= 34
+  const resumeInterTitle = hasInterProgress ? getLessonById(lastLessonId)?.title ?? '' : ''
+  const startIntermediate = () => void loadLesson(hasInterProgress ? lastLessonId : 15)
+
+  const hasProgress = hasBasicsProgress || hasInterProgress
+
+  const stageCounts: Record<StageId, number> = {
+    basics: 14,
+    intermediate: 20,
+    advanced: 0,
+  }
 
   return (
     <div
@@ -70,13 +81,21 @@ export default function HomePage() {
         <div className="home-cards">
           {STAGE_ORDER.map((id) => {
             const live = LIVE[id]
+            const isBasics = id === 'basics'
+            const isInter = id === 'intermediate'
+            const onStageClick = isBasics ? startBasics : isInter ? startIntermediate : () => {}
+            const stageHasProgress = isBasics ? hasBasicsProgress : isInter ? hasInterProgress : false
+            const stageCurrent = isBasics ? lastLessonId : isInter ? lastLessonId - 14 : 0
+            const stageTotal = stageCounts[id]
+            const stageTitle = isBasics ? resumeBasicsTitle : isInter ? resumeInterTitle : ''
+
             const cardProps = live
               ? {
                   role: 'button' as const,
                   tabIndex: 0,
-                  onClick: startBasics,
+                  onClick: onStageClick,
                   onKeyDown: (e: React.KeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startBasics() }
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStageClick() }
                   },
                 }
               : { 'aria-disabled': true as const }
@@ -84,7 +103,7 @@ export default function HomePage() {
               <div key={id} className={`home-card ${live ? 'home-card--live' : 'home-card--soon'}`} {...cardProps}>
                 <span className="home-card__edge" aria-hidden="true" />
                 <span className={`home-chip ${live ? 'home-chip--lab' : 'home-chip--soon'}`}>
-                  {live ? t('home.labChip', { count: total }) : t('home.comingSoon')}
+                  {live ? t('home.labChip', { count: stageTotal }) : t('home.comingSoon')}
                 </span>
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>
                   {t(`home.stages.${id}.name`)}
@@ -95,10 +114,10 @@ export default function HomePage() {
                 {live && (
                   <>
                     <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-                      {hasProgress ? t('home.progress.inProgress', { n: lastLessonId, total }) : t('home.progress.notStarted')}
+                      {stageHasProgress ? t('home.progress.inProgress', { n: stageCurrent, total: stageTotal }) : t('home.progress.notStarted')}
                     </p>
                     <span style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-accent-orange)' }}>
-                      {hasProgress ? t('home.continue', { title: resumeTitle }) : t('home.start')}
+                      {stageHasProgress ? t('home.continue', { title: stageTitle }) : (isInter ? 'Start - Lab 1' : t('home.start'))}
                       <span className="home-card__arrow" aria-hidden="true">→</span>
                     </span>
                   </>

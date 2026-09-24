@@ -94,7 +94,9 @@ export default function LessonPanel() {
               fontWeight: 600,
             }}
           >
-            {t('lessonPanel.badge', { current: lesson.id, total: getLastLessonId() })}
+            {lesson.id >= 15
+              ? `Intermediate · Lab ${lesson.id - 14} / 20`
+              : `Basics · Lesson ${lesson.id} / 14`}
           </span>
         </div>
         <h2 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.125rem', fontFamily: 'var(--font-sans)', fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.005em' }}>
@@ -257,7 +259,11 @@ export default function LessonPanel() {
                   padding: '11px',
                 }}
               >
-                {t('lessonPanel.nextLesson')}
+                {lesson.id === 14
+                  ? 'Complete Basics & Start Intermediate Course (Lab 1) →'
+                  : lesson.id >= 15
+                    ? `Next Lab (Lab ${lesson.id - 14 + 1}) →`
+                    : t('lessonPanel.nextLesson')}
               </button>
             )}
           </div>

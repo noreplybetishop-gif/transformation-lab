@@ -342,6 +342,9 @@ export async function execute(
     usedSelect: command.select.length > 0,
     usedUpstream: command.select.some(g => g.terms.some(t => t.upstream)),
     usedDownstream: command.select.some(g => g.terms.some(t => t.downstream)),
+    usedFullRefresh: command.args.includes('--full-refresh'),
+    args: command.args,
+    raw: command.raw,
   }
 
   const blocked = browserIncompatible(command)
