@@ -1,0 +1,5 @@
+{
+  "name": "Data Transformation Lab",
+  "description": "Interactive hands-on dbt lessons running the real dbt engine directly in the browser.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
