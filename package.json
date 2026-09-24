@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "npm run dev -w transformation-lab-basics",
     "build": "npm run build -w transformation-lab-basics",
+    "lint": "npm run typecheck -w transformation-lab-basics",
     "engine:gate": "npm run gate -w @dbt-wasm/engine",
     "engine:hello": "npm run hello -w @dbt-wasm/engine",
     "engine:browser-gate": "npm run browser-gate -w @dbt-wasm/engine",

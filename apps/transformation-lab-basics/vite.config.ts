@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
+    allowedHosts: true,
   },
   // @dbt-wasm/engine spawns a module Web Worker via `new Worker(new URL('./worker.js', import.meta.url))`.
   // Excluding it from esbuild pre-bundling keeps it as source so Vite's worker pipeline handles the

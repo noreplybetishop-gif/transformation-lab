@@ -13,7 +13,7 @@
     "smoke": "npm run build && node smoke-home.mjs"
   },
   "dependencies": {
-    "@datagym/design": "github:bruno-szdl/datagym-design#v1.2.1",
+    "@datagym/design": "*",
     "@dbt-wasm/engine": "*",
     "@monaco-editor/react": "^4.7.0",
     "dagre": "^0.8.5",

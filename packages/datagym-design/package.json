@@ -1,0 +1,26 @@
+{
+  "name": "@datagym/design",
+  "version": "1.2.1",
+  "description": "DataGym.io design tokens - single source of truth for colours, fonts and the per-lab accent contract across datagym and the quest repos.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./dist/tokens.css",
+    "./theme.css": "./dist/theme.css",
+    "./primitives.css": "./dist/primitives.css",
+    "./fonts.css": "./dist/fonts.css",
+    "./fonts/*": "./dist/fonts/*",
+    "./primitives": {
+      "types": "./dist/primitives.d.ts",
+      "default": "./dist/primitives.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens.d.ts",
+      "default": "./dist/tokens.js"
+    }
+  },
+  "files": [
+    "dist",
+    "tokens"
+  ]
+}
