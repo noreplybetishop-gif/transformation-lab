@@ -36,8 +36,25 @@ function wheelhousePlugin(): Plugin {
   }
 }
 
+function copyDistPlugin(): Plugin {
+  return {
+    name: 'copy-dist-to-root',
+    closeBundle() {
+      try {
+        const srcDir = path.resolve(__dirname, 'dist')
+        const targetDir = path.resolve(__dirname, '../../dist')
+        if (fs.existsSync(srcDir)) {
+          fs.cpSync(srcDir, targetDir, { recursive: true, force: true })
+        }
+      } catch (e) {
+        console.warn('Could not copy dist to root:', e)
+      }
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), wheelhousePlugin()],
+  plugins: [react(), tailwindcss(), wheelhousePlugin(), copyDistPlugin()],
   server: {
     host: '0.0.0.0',
     port: 3000,
