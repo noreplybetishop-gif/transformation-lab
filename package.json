@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "npm run dev -w transformation-lab-basics",
-    "build": "npm run build -w transformation-lab-basics",
+    "build": "npm run build -w transformation-lab-basics && (cp -r apps/transformation-lab-basics/dist ./dist 2>/dev/null || true)",
     "lint": "npm run typecheck -w transformation-lab-basics",
     "engine:gate": "npm run gate -w @dbt-wasm/engine",
     "engine:hello": "npm run hello -w @dbt-wasm/engine",
