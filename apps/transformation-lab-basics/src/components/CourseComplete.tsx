@@ -23,7 +23,8 @@ export default function CourseComplete() {
 
   const loadLesson = useGameStore((s) => s.loadLesson)
   const currentLessonId = useGameStore((s) => s.currentLessonId)
-  const isIntermediate = currentLessonId >= 15
+  const isAdvanced = currentLessonId >= 35
+  const isIntermediate = currentLessonId >= 15 && currentLessonId < 35
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://transformation-lab.datagym.io')}`
 
   return (
@@ -65,7 +66,11 @@ export default function CourseComplete() {
           marginBottom: '8px',
         }}
       >
-        {isIntermediate ? 'INTERMEDIATE LEVEL COMPLETE' : t('courseComplete.eyebrow')}
+        {isAdvanced
+          ? 'ADVANCED COURSE COMPLETE'
+          : isIntermediate
+          ? 'INTERMEDIATE LEVEL COMPLETE'
+          : t('courseComplete.eyebrow')}
       </div>
       <h3
         style={{
@@ -77,7 +82,9 @@ export default function CourseComplete() {
           lineHeight: 1.3,
         }}
       >
-        {isIntermediate
+        {isAdvanced
+          ? "You've mastered advanced analytics engineering & enterprise dbt!"
+          : isIntermediate
           ? "You've mastered intermediate dbt engineering!"
           : t('courseComplete.title')}
       </h3>
@@ -89,14 +96,31 @@ export default function CourseComplete() {
           lineHeight: 1.6,
         }}
       >
-        {isIntermediate
+        {isAdvanced
+          ? "You've built and orchestrated production-grade data platforms: high-performance merge strategies, custom generic test macros, unit testing, schema enforcement contracts, Semantic Layer metrics, exposures, and zero-downtime blue-green deployments."
+          : isIntermediate
           ? "You've tackled the real patterns production teams lean on: incremental processing, slowly changing dimensions (SCD2), modular Jinja macros, multi-schema architecture, and model contracts."
           : renderInline(t('courseComplete.body'))}
       </p>
 
       <div style={{ marginBottom: '12px' }}>
         <SubLabel>{t('courseComplete.whatNext')}</SubLabel>
-        {isIntermediate ? (
+        {isAdvanced ? (
+          <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <NextStep>
+              <span>Deploy to enterprise production with automated CI: </span>
+              <ExtLink href="https://docs.getdbt.com/docs/deploy/deployments">dbt Cloud & orchestrator deployments</ExtLink>
+            </NextStep>
+            <NextStep>
+              <span>Explore dbt Mesh cross-project dependencies: </span>
+              <ExtLink href="https://docs.getdbt.com/docs/collaborate/govern/about-mesh">dbt Mesh architecture guide</ExtLink>
+            </NextStep>
+            <NextStep>
+              <span>Contribute to open source dbt packages & adapters: </span>
+              <ExtLink href="https://github.com/dbt-labs/dbt-core">dbt-core GitHub repository</ExtLink>
+            </NextStep>
+          </ul>
+        ) : isIntermediate ? (
           <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <NextStep>
               <span>Deploy your dbt models to Snowflake, BigQuery, or Databricks: </span>

@@ -204,7 +204,7 @@ function LessonSelector({ compact = false }: { compact?: boolean }) {
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
       >
         <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-sans)' }}>
-          {currentLessonId >= 15 ? 'Intermediate' : t('header.lesson')}
+          {currentLessonId >= 35 ? 'Advanced' : currentLessonId >= 15 ? 'Intermediate' : t('header.lesson')}
         </span>
         <span
           className="font-semibold px-2.5 py-0.5 rounded"
@@ -217,7 +217,7 @@ function LessonSelector({ compact = false }: { compact?: boolean }) {
             flexShrink: 0,
           }}
         >
-          {currentLessonId >= 15 ? `Lab ${currentLessonId - 14}` : (currentLessonId || '-')}
+          {currentLessonId >= 35 ? `Lab ${currentLessonId - 34}` : currentLessonId >= 15 ? `Lab ${currentLessonId - 14}` : (currentLessonId || '-')}
         </span>
         {lesson && (
           <>
@@ -330,6 +330,63 @@ function LessonSelector({ compact = false }: { compact?: boolean }) {
             const isCurrent = l.id === currentLessonId
             const isCompleted = lessonCompleted(completedTasks, l.id)
             const labNum = l.id - 14
+            return (
+              <button
+                key={l.id}
+                onClick={() => { void loadLesson(l.id); setOpen(false) }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '5px 8px',
+                  background: isCurrent ? 'var(--color-accent-bg)' : 'transparent',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  textAlign: 'left' as const,
+                }}
+                onMouseEnter={(e) => { if (!isCurrent) e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isCurrent ? 'var(--color-accent-bg)' : 'transparent' }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.625rem',
+                    color: isCurrent ? 'var(--color-accent-orange)' : isCompleted ? 'var(--color-success)' : 'var(--color-muted)',
+                    width: '38px',
+                    textAlign: 'right' as const,
+                    flexShrink: 0,
+                  }}
+                >
+                  L{labNum}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '0.75rem',
+                    color: isCurrent ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    flex: 1,
+                  }}
+                >
+                  {localizedLessonTitle(l, lang)}
+                </span>
+                {isCompleted && (
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8.5l3 3 7-7" stroke="var(--color-success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            )
+          })}
+
+          <div style={{ margin: '8px 0 3px', borderTop: '1px solid var(--color-border)', paddingTop: '8px', paddingLeft: '8px', paddingRight: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: 'var(--color-accent-orange)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Advanced Course (Labs 1–25)
+          </div>
+          {lessons.filter(l => l.id >= 35 && l.id <= 59).map((l) => {
+            const isCurrent = l.id === currentLessonId
+            const isCompleted = lessonCompleted(completedTasks, l.id)
+            const labNum = l.id - 34
             return (
               <button
                 key={l.id}

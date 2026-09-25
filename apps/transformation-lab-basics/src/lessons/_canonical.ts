@@ -262,3 +262,12 @@ export const RAW_PAYMENTS_CSV = `id,order_id,payment_method,amount_cents,created
 5,105,credit_card,5500,2024-02-04 12:15:00
 6,106,bank_transfer,800,2024-02-09 09:45:00`
 
+export const RAW_ORDER_ITEMS_CSV = `id,order_id,product_id,quantity,unit_price
+1,101,1001,2,21.00
+2,102,1002,1,18.50
+3,103,1003,3,33.00
+4,104,1001,1,12.75
+5,105,1004,2,27.50
+6,106,1002,1,8.00`
+
+

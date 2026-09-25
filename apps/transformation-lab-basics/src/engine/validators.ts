@@ -321,4 +321,21 @@ export function usedFullRefresh(state: GameState): boolean {
   return Boolean(state.lastRun?.usedFullRefresh)
 }
 
+/** True if a file at `path` exists and its content contains the substring `text`. */
+export function fileContains(
+  state: GameState,
+  path: string,
+  text: string,
+): boolean {
+  const content = state.files[path]
+  if (content == null) return false
+  return content.includes(text)
+}
+
+/** True if the most recent command was of the specified command type. */
+export function commandRan(state: GameState, cmd: string): boolean {
+  return state.lastRun?.command === cmd
+}
+
+
 

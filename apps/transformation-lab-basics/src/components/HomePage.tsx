@@ -16,7 +16,7 @@ import { type NodeLayer } from '../engine/dagBuilder'
 
 type StageId = 'basics' | 'intermediate' | 'advanced'
 const STAGE_ORDER: StageId[] = ['basics', 'intermediate', 'advanced']
-const LIVE: Record<StageId, boolean> = { basics: true, intermediate: true, advanced: false }
+const LIVE: Record<StageId, boolean> = { basics: true, intermediate: true, advanced: true }
 
 export default function HomePage() {
   const { t } = useTranslation()
@@ -31,12 +31,16 @@ export default function HomePage() {
   const resumeInterTitle = hasInterProgress ? getLessonById(lastLessonId)?.title ?? '' : ''
   const startIntermediate = () => void loadLesson(hasInterProgress ? lastLessonId : 15)
 
-  const hasProgress = hasBasicsProgress || hasInterProgress
+  const hasAdvancedProgress = lastLessonId >= 35 && lastLessonId <= 59
+  const resumeAdvancedTitle = hasAdvancedProgress ? getLessonById(lastLessonId)?.title ?? '' : ''
+  const startAdvanced = () => void loadLesson(hasAdvancedProgress ? lastLessonId : 35)
+
+  const hasProgress = hasBasicsProgress || hasInterProgress || hasAdvancedProgress
 
   const stageCounts: Record<StageId, number> = {
     basics: 14,
     intermediate: 20,
-    advanced: 0,
+    advanced: 25,
   }
 
   return (
@@ -83,11 +87,11 @@ export default function HomePage() {
             const live = LIVE[id]
             const isBasics = id === 'basics'
             const isInter = id === 'intermediate'
-            const onStageClick = isBasics ? startBasics : isInter ? startIntermediate : () => {}
-            const stageHasProgress = isBasics ? hasBasicsProgress : isInter ? hasInterProgress : false
-            const stageCurrent = isBasics ? lastLessonId : isInter ? lastLessonId - 14 : 0
+            const onStageClick = isBasics ? startBasics : isInter ? startIntermediate : startAdvanced
+            const stageHasProgress = isBasics ? hasBasicsProgress : isInter ? hasInterProgress : hasAdvancedProgress
+            const stageCurrent = isBasics ? lastLessonId : isInter ? lastLessonId - 14 : lastLessonId - 34
             const stageTotal = stageCounts[id]
-            const stageTitle = isBasics ? resumeBasicsTitle : isInter ? resumeInterTitle : ''
+            const stageTitle = isBasics ? resumeBasicsTitle : isInter ? resumeInterTitle : resumeAdvancedTitle
 
             const cardProps = live
               ? {
@@ -117,7 +121,7 @@ export default function HomePage() {
                       {stageHasProgress ? t('home.progress.inProgress', { n: stageCurrent, total: stageTotal }) : t('home.progress.notStarted')}
                     </p>
                     <span style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-accent-orange)' }}>
-                      {stageHasProgress ? t('home.continue', { title: stageTitle }) : (isInter ? 'Start - Lab 1' : t('home.start'))}
+                      {stageHasProgress ? t('home.continue', { title: stageTitle }) : (isBasics ? t('home.start') : 'Start - Lab 1')}
                       <span className="home-card__arrow" aria-hidden="true">→</span>
                     </span>
                   </>

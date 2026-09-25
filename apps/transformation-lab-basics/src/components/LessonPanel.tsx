@@ -94,7 +94,9 @@ export default function LessonPanel() {
               fontWeight: 600,
             }}
           >
-            {lesson.id >= 15
+            {lesson.id >= 35
+              ? `Advanced · Lab ${lesson.id - 34} / 25`
+              : lesson.id >= 15
               ? `Intermediate · Lab ${lesson.id - 14} / 20`
               : `Basics · Lesson ${lesson.id} / 14`}
           </span>
