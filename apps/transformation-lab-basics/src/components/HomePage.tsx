@@ -4,6 +4,7 @@ import { getLessonById } from '../lessons'
 import { renderInline } from './Markdownish'
 import { dag } from '@datagym/design/tokens'
 import { type NodeLayer } from '../engine/dagBuilder'
+import { SparkFlameIcon } from './SparkPage'
 
 /**
  * The subdomain landing page (rendered at `/`, i.e. `currentLessonId === 0`).
@@ -48,6 +49,76 @@ export default function HomePage() {
       className="flex-1 overflow-y-auto"
       style={{ background: 'var(--color-base)', color: 'var(--color-text)' }}
     >
+      {/* ── COURSE SWITCHER BAR ───────────────────────────────────────────── */}
+      <div
+        style={{
+          borderBottom: '1px solid var(--color-border)',
+          background: 'var(--color-surface)',
+          padding: '8px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px',
+          flexWrap: 'wrap',
+        }}
+      >
+        <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+          Available Courses:
+        </span>
+        <div style={{ display: 'inline-flex', padding: '3px', background: 'var(--color-base)', borderRadius: '8px', border: '1px solid var(--color-border)', gap: '4px' }}>
+          <button
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 14px',
+              borderRadius: '6px',
+              border: '1px solid var(--color-accent-orange)',
+              background: 'rgba(255, 105, 74, 0.12)',
+              color: 'var(--color-accent-orange)',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              cursor: 'default',
+            }}
+          >
+            <span>⚡</span>
+            <span>dbt Lab</span>
+            <span style={{ fontSize: '0.6875rem', padding: '1px 6px', borderRadius: '10px', background: 'var(--color-accent-orange)', color: '#fff', fontWeight: 700 }}>
+              59 Labs Live
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              window.history.pushState(null, '', '/spark')
+              window.dispatchEvent(new PopStateEvent('popstate'))
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--color-text-secondary)',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#E25A1C' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)' }}
+          >
+            <SparkFlameIcon size={14} color="#E25A1C" />
+            <span>Apache Spark Lab</span>
+            <span style={{ fontSize: '0.6875rem', padding: '1px 6px', borderRadius: '10px', background: 'rgba(226, 90, 28, 0.15)', color: '#E25A1C', fontWeight: 700 }}>
+              New Course
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section style={{ maxWidth: '780px', margin: '0 auto', padding: '48px 32px 8px', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>

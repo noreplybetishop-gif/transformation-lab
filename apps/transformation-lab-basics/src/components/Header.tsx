@@ -4,12 +4,29 @@ import { useGameStore, lessonCompleted } from '../store/gameStore'
 import { lessons, getLessonById } from '../lessons'
 import { localizedLessonTitle } from '../i18n/useLocalizedLesson'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { SparkFlameIcon } from './SparkPage'
 
 export default function Header() {
   const isMobile = useIsMobile()
   const { t } = useTranslation()
   const loadLesson = useGameStore((s) => s.loadLesson)
   const currentLessonId = useGameStore((s) => s.currentLessonId)
+
+  const [pathname, setPathname] = useState(() => (typeof window !== 'undefined' ? window.location.pathname : '/'))
+  useEffect(() => {
+    const handlePop = () => setPathname(window.location.pathname)
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [])
+  const isSpark = pathname.startsWith('/spark')
+
+  const handleNavigate = (target: string) => {
+    if (target === '/') {
+      void loadLesson(0)
+    }
+    window.history.pushState(null, '', target)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
 
   return (
     <header
@@ -24,36 +41,100 @@ export default function Header() {
     >
       <div className="flex items-center gap-2 min-w-0" style={{ flex: 1 }}>
         <button
-          onClick={() => void loadLesson(0)}
-          title={t('header.backToIntro')}
-          aria-label={t('header.backToIntro')}
+          onClick={() => handleNavigate(isSpark ? '/spark' : '/')}
+          title={isSpark ? 'Apache Spark Lab Home' : t('header.backToIntro')}
+          aria-label={isSpark ? 'Apache Spark Lab Home' : t('header.backToIntro')}
           className="flex items-center gap-2"
           style={{
             background: 'transparent',
             border: 'none',
             padding: '4px 6px',
             borderRadius: '5px',
-            cursor: currentLessonId === 0 ? 'default' : 'pointer',
+            cursor: currentLessonId === 0 && !isSpark ? 'default' : 'pointer',
             flexShrink: 0,
           }}
-          onMouseEnter={(e) => { if (currentLessonId !== 0) e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
         >
-          <DbtLogo />
+          {isSpark ? <SparkFlameIcon size={20} color="#E25A1C" /> : <DbtLogo />}
           {!isMobile && (
             <div className="flex flex-col justify-center" style={{ gap: '1px' }}>
               <div className="flex items-center" style={{ gap: '1px' }}>
-                <span className="font-semibold tracking-tight" style={{ fontFamily: 'var(--font-sans)', color: 'var(--color-accent-orange)', fontSize: '0.75rem' }}>Data Transformation&nbsp;</span>
-                <span className="font-semibold tracking-tight" style={{ fontFamily: 'var(--font-sans)', color: 'var(--color-text)', fontSize: '0.75rem' }}>Lab</span>
+                <span className="font-semibold tracking-tight" style={{ fontFamily: 'var(--font-sans)', color: isSpark ? '#E25A1C' : 'var(--color-accent-orange)', fontSize: '0.75rem' }}>
+                  {isSpark ? 'Apache Spark' : 'Data Transformation'}&nbsp;
+                </span>
+                <span className="font-semibold tracking-tight" style={{ fontFamily: 'var(--font-sans)', color: 'var(--color-text)', fontSize: '0.75rem' }}>
+                  Lab
+                </span>
               </div>
               <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--color-muted)', fontSize: '0.625rem', lineHeight: 1 }}>
-                {t('header.tagline')}
+                {isSpark ? 'Distributed Big Data & PySpark' : t('header.tagline')}
               </span>
             </div>
           )}
         </button>
+
         {!isMobile && <div className="w-px h-4" style={{ background: 'var(--color-border)', flexShrink: 0 }} />}
-        <LessonSelector compact={isMobile} />
+
+        {/* Course Track Switcher */}
+        <div
+          className="flex items-center rounded-md p-0.5 border"
+          style={{
+            borderColor: 'var(--color-border)',
+            background: 'var(--color-base)',
+            flexShrink: 0,
+            gap: '2px',
+          }}
+        >
+          <button
+            onClick={() => handleNavigate('/')}
+            title="dbt Course (59 Labs Live)"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: isMobile ? '2px 6px' : '2px 8px',
+              borderRadius: '4px',
+              border: isSpark ? 'none' : '1px solid var(--color-accent-orange)',
+              background: isSpark ? 'transparent' : 'rgba(255, 105, 74, 0.12)',
+              color: isSpark ? 'var(--color-text-muted)' : 'var(--color-accent-orange)',
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              cursor: isSpark ? 'pointer' : 'default',
+            }}
+          >
+            <span>⚡</span>
+            {!isMobile && <span>dbt</span>}
+          </button>
+          <button
+            onClick={() => handleNavigate('/spark')}
+            title="Apache Spark Course (New Track)"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: isMobile ? '2px 6px' : '2px 8px',
+              borderRadius: '4px',
+              border: isSpark ? '1px solid #E25A1C' : 'none',
+              background: isSpark ? 'rgba(226, 90, 28, 0.15)' : 'transparent',
+              color: isSpark ? '#E25A1C' : 'var(--color-text-muted)',
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              cursor: isSpark ? 'default' : 'pointer',
+            }}
+          >
+            <SparkFlameIcon size={12} color={isSpark ? '#E25A1C' : 'currentColor'} />
+            {!isMobile && <span>Spark</span>}
+          </button>
+        </div>
+
+        {!isMobile && <div className="w-px h-4" style={{ background: 'var(--color-border)', flexShrink: 0 }} />}
+
+        {!isSpark ? (
+          <LessonSelector compact={isMobile} />
+        ) : (
+          <SparkHeaderBadge />
+        )}
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
@@ -632,4 +713,129 @@ function MoonIcon() {
     </svg>
   )
 }
+
+function SparkHeaderBadge() {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const switchToDbt = (lessonId: number = 0) => {
+    useGameStore.getState().loadLesson(lessonId).catch(() => undefined)
+    const target = lessonId === 0 ? '/' : `/lesson/${lessonId}`
+    window.history.pushState(null, '', target)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    setOpen(false)
+  }
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2"
+        style={{
+          background: 'transparent',
+          border: 'none',
+          padding: '4px 6px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+      >
+        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-sans)' }}>
+          Track
+        </span>
+        <span
+          className="font-semibold px-2 py-0.5 rounded"
+          style={{
+            background: 'rgba(226, 90, 28, 0.12)',
+            border: '1px solid #E25A1C',
+            color: '#E25A1C',
+            fontSize: '0.75rem',
+            fontFamily: 'JetBrains Mono, monospace',
+          }}
+        >
+          Basics · Inter · Adv
+        </span>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 16 16"
+          fill="none"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s', color: 'var(--color-muted)' }}
+        >
+          <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            padding: '8px',
+            width: 'min(320px, calc(100vw - 24px))',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          }}
+        >
+          <div style={{ padding: '4px 6px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: '#E25A1C', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Apache Spark Course (45 Labs Planned)
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+            <div style={{ padding: '6px 8px', borderRadius: '5px', background: 'var(--color-base)', border: '1px solid var(--color-border)', fontSize: '0.75rem' }}>
+              <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>Phase 1: Basics (12 Labs)</div>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.6875rem' }}>Driver, RDDs, DataFrames & Actions</div>
+            </div>
+            <div style={{ padding: '6px 8px', borderRadius: '5px', background: 'var(--color-base)', border: '1px solid var(--color-border)', fontSize: '0.75rem' }}>
+              <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>Phase 2: Intermediate (15 Labs)</div>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.6875rem' }}>PySpark, Windowing, Broadcast Joins & Delta Lake</div>
+            </div>
+            <div style={{ padding: '6px 8px', borderRadius: '5px', background: 'var(--color-base)', border: '1px solid var(--color-border)', fontSize: '0.75rem' }}>
+              <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>Phase 3: Advanced (18 Labs)</div>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.6875rem' }}>Catalyst Optimizer, AQE, Skew & Streaming</div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
+            <button
+              onClick={() => switchToDbt(1)}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                borderRadius: '5px',
+                border: 'none',
+                background: 'var(--color-accent-bg)',
+                color: 'var(--color-accent-orange)',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span>← Switch to Live dbt Course (59 Labs)</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 

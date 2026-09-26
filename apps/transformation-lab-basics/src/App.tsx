@@ -3,6 +3,7 @@ import Header from './components/Header'
 import LabBar from './components/LabBar'
 import BootOverlay from './components/BootOverlay'
 import HomePage from './components/HomePage'
+import SparkPage from './components/SparkPage'
 import PrivacyPage from './components/PrivacyPage'
 import { useGameStore } from './store/gameStore'
 import { useIsMobile } from './hooks/useIsMobile'
@@ -14,10 +15,11 @@ import { useIsMobile } from './hooks/useIsMobile'
 const Workspace = lazy(() => import('./components/Workspace'))
 const MobileLayout = lazy(() => import('./components/MobileLayout'))
 
-type ParsedRoute = { kind: 'lesson'; lessonId: number | null } | { kind: 'privacy' }
+type ParsedRoute = { kind: 'lesson'; lessonId: number | null } | { kind: 'privacy' } | { kind: 'spark' }
 
 function parsePathname(pathname: string): ParsedRoute {
   if (pathname.startsWith('/privacy')) return { kind: 'privacy' }
+  if (pathname.startsWith('/spark')) return { kind: 'spark' }
   const m = pathname.match(/^\/lesson\/(\d+)\/?$/)
   if (m) {
     const n = Number(m[1])
@@ -27,7 +29,7 @@ function parsePathname(pathname: string): ParsedRoute {
 }
 
 /**
- * Migrate legacy hash URLs (`#/lesson/3`, `#/privacy`) to clean paths so old
+ * Migrate legacy hash URLs (`#/lesson/3`, `#/privacy`, `#/spark`) to clean paths so old
  * links keep working. Runs once at startup, rewrites history in-place.
  * Returns the resulting pathname so the caller can use it directly.
  */
@@ -43,6 +45,10 @@ function migrateLegacyHashOnce(): string {
   if (hash.startsWith('#/privacy')) {
     window.history.replaceState(null, '', '/privacy')
     return '/privacy'
+  }
+  if (hash.startsWith('#/spark')) {
+    window.history.replaceState(null, '', '/spark')
+    return '/spark'
   }
   return window.location.pathname
 }
@@ -78,6 +84,7 @@ export default function App() {
 
   useEffect(() => {
     if (!initializedRef.current) return
+    if (pathname.startsWith('/spark') || pathname.startsWith('/privacy')) return
     // Mirror the store's lesson into the URL. This also handles "click the
     // logo while on /privacy" - currentLessonId changes (or stays at 0), and
     // we switch the URL back to a lesson route. The setPathname below makes
@@ -120,7 +127,7 @@ export default function App() {
         <LabBar />
         <Header />
         <div className="flex-1 overflow-y-auto">
-          {route === 'privacy' ? <PrivacyPage /> : (isHome ? <HomePage /> : (
+          {route === 'privacy' ? <PrivacyPage /> : route === 'spark' ? <SparkPage /> : (isHome ? <HomePage /> : (
             <Suspense fallback={null}><MobileLayout /></Suspense>
           ))}
         </div>
@@ -133,7 +140,7 @@ export default function App() {
       <BootOverlay />
       <LabBar />
       <Header />
-      {route === 'privacy' ? <PrivacyPage /> : (isHome ? <HomePage /> : (
+      {route === 'privacy' ? <PrivacyPage /> : route === 'spark' ? <SparkPage /> : (isHome ? <HomePage /> : (
         <Suspense fallback={null}><Workspace /></Suspense>
       ))}
     </div>
