@@ -59,8 +59,9 @@ import lesson56 from './lesson56'
 import lesson57 from './lesson57'
 import lesson58 from './lesson58'
 import lesson59 from './lesson59'
+import { sparkLessons, isSparkLesson, isSparkBasicsLesson, isSparkIntermediateLesson, SPARK_BASICS_COUNT, SPARK_INTERMEDIATE_COUNT } from './spark'
 
-export const lessons: Lesson[] = [
+export const dbtLessons: Lesson[] = [
   lesson00,
   lesson01,
   lesson02,
@@ -123,6 +124,10 @@ export const lessons: Lesson[] = [
   lesson59,
 ]
 
+export const lessons: Lesson[] = [...dbtLessons, ...sparkLessons]
+
+export { sparkLessons, isSparkLesson, isSparkBasicsLesson, isSparkIntermediateLesson, SPARK_BASICS_COUNT, SPARK_INTERMEDIATE_COUNT }
+
 export const BASICS_LESSONS_COUNT = 14
 export const INTERMEDIATE_LESSONS_COUNT = 20
 export const ADVANCED_LESSONS_COUNT = 25
@@ -143,9 +148,11 @@ export function getLessonById(id: number): Lesson | undefined {
   return lessons.find((l) => l.id === id)
 }
 
-export function getLastLessonId(): number {
-  return lessons.reduce((max, l) => (l.id > max ? l.id : max), 0)
+export function getLastLessonId(isSpark = false): number {
+  if (isSpark) return 127
+  return 59
 }
+
 
 /** Stable key for a task's progress entry: `<lessonId>.<taskId>`. */
 export function taskKey(lessonId: number, taskId: string): string {

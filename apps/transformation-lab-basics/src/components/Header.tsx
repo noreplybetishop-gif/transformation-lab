@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGameStore, lessonCompleted } from '../store/gameStore'
 import { lessons, getLessonById } from '../lessons'
+import { sparkLessons } from '../lessons/spark'
 import { localizedLessonTitle } from '../i18n/useLocalizedLesson'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { SparkFlameIcon } from './SparkPage'
@@ -18,10 +19,10 @@ export default function Header() {
     window.addEventListener('popstate', handlePop)
     return () => window.removeEventListener('popstate', handlePop)
   }, [])
-  const isSpark = pathname.startsWith('/spark')
+  const isSpark = pathname.startsWith('/spark') || currentLessonId >= 101
 
   const handleNavigate = (target: string) => {
-    if (target === '/') {
+    if (target === '/' || target === '/spark') {
       void loadLesson(0)
     }
     window.history.pushState(null, '', target)
@@ -132,6 +133,8 @@ export default function Header() {
 
         {!isSpark ? (
           <LessonSelector compact={isMobile} />
+        ) : currentLessonId >= 101 ? (
+          <SparkLessonSelector compact={isMobile} />
         ) : (
           <SparkHeaderBadge />
         )}
@@ -837,5 +840,261 @@ function SparkHeaderBadge() {
     </div>
   )
 }
+
+function SparkLessonSelector({ compact = false }: { compact?: boolean }) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const currentLessonId = useGameStore((s) => s.currentLessonId)
+  const completedTasks = useGameStore((s) => s.completedTasks)
+  const loadLesson = useGameStore((s) => s.loadLesson)
+  const lesson = getLessonById(currentLessonId)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const isInter = currentLessonId >= 113
+  const labNum = isInter ? currentLessonId - 112 : currentLessonId - 100
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', minWidth: 0, flex: compact ? 1 : 'initial' }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          padding: '4px 6px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          maxWidth: '100%',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+      >
+        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-sans)' }}>
+          {isInter ? 'Spark Inter' : 'Spark Basics'}
+        </span>
+        <span
+          className="font-semibold px-2.5 py-0.5 rounded"
+          style={{
+            background: 'rgba(226, 90, 28, 0.15)',
+            border: '1px solid #E25A1C',
+            color: '#E25A1C',
+            fontSize: '0.8125rem',
+            fontFamily: 'JetBrains Mono, monospace',
+            flexShrink: 0,
+          }}
+        >
+          Lab {labNum}
+        </span>
+        {lesson && (
+          <>
+            <span style={{ color: 'var(--color-muted)', fontSize: '0.75rem', flexShrink: 0 }}>-</span>
+            <span
+              style={{
+                color: 'var(--color-text-muted)',
+                fontSize: '0.75rem',
+                fontFamily: 'var(--font-sans)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                minWidth: 0,
+              }}
+            >
+              {lesson.title}
+            </span>
+          </>
+        )}
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 16 16"
+          fill="none"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s', color: 'var(--color-muted)' }}
+        >
+          <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            padding: '8px',
+            width: 'min(360px, calc(100vw - 24px))',
+            maxHeight: '440px',
+            overflowY: 'auto',
+            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          }}
+        >
+          <div style={{ padding: '4px 6px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: '#E25A1C', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Phase 1: Basics (Labs 1–12)
+          </div>
+          {sparkLessons.slice(0, 12).map((l) => {
+            const isCurrent = l.id === currentLessonId
+            const isCompleted = lessonCompleted(completedTasks, l.id)
+            const labIdx = l.id - 100
+            return (
+              <button
+                key={l.id}
+                onClick={() => { void loadLesson(l.id); setOpen(false) }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '5px 8px',
+                  background: isCurrent ? 'rgba(226, 90, 28, 0.12)' : 'transparent',
+                  border: isCurrent ? '1px solid rgba(226, 90, 28, 0.3)' : 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  textAlign: 'left' as const,
+                }}
+                onMouseEnter={(e) => { if (!isCurrent) e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isCurrent ? 'rgba(226, 90, 28, 0.12)' : 'transparent' }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.625rem',
+                    color: isCurrent ? '#E25A1C' : isCompleted ? 'var(--color-success)' : 'var(--color-muted)',
+                    width: '32px',
+                    textAlign: 'right' as const,
+                    flexShrink: 0,
+                    fontWeight: isCurrent ? 700 : 400,
+                  }}
+                >
+                  L{labIdx}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '0.75rem',
+                    color: isCurrent ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    flex: 1,
+                  }}
+                >
+                  {l.title.replace(/^Spark Lab \d+ · /, '')}
+                </span>
+                {isCompleted && (
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8.5l3 3 7-7" stroke="var(--color-success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            )
+          })}
+
+          <div style={{ margin: '8px 0 3px', borderTop: '1px solid var(--color-border)', paddingTop: '8px', paddingLeft: '8px', paddingRight: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: '#E25A1C', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Phase 2: Intermediate (Labs 13–27)
+          </div>
+          {sparkLessons.slice(12, 27).map((l) => {
+            const isCurrent = l.id === currentLessonId
+            const isCompleted = lessonCompleted(completedTasks, l.id)
+            const labIdx = l.id - 112
+            return (
+              <button
+                key={l.id}
+                onClick={() => { void loadLesson(l.id); setOpen(false) }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '5px 8px',
+                  background: isCurrent ? 'rgba(226, 90, 28, 0.12)' : 'transparent',
+                  border: isCurrent ? '1px solid rgba(226, 90, 28, 0.3)' : 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  textAlign: 'left' as const,
+                }}
+                onMouseEnter={(e) => { if (!isCurrent) e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isCurrent ? 'rgba(226, 90, 28, 0.12)' : 'transparent' }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.625rem',
+                    color: isCurrent ? '#E25A1C' : isCompleted ? 'var(--color-success)' : 'var(--color-muted)',
+                    width: '32px',
+                    textAlign: 'right' as const,
+                    flexShrink: 0,
+                    fontWeight: isCurrent ? 700 : 400,
+                  }}
+                >
+                  L{labIdx}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '0.75rem',
+                    color: isCurrent ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    flex: 1,
+                  }}
+                >
+                  {l.title.replace(/^Spark Lab \d+ · /, '')}
+                </span>
+                {isCompleted && (
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8.5l3 3 7-7" stroke="var(--color-success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            )
+          })}
+
+          <div style={{ margin: '8px 0 3px', borderTop: '1px solid var(--color-border)', paddingTop: '8px', paddingLeft: '8px', paddingRight: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+            Phase 3: Advanced (18 Labs - Upcoming)
+          </div>
+
+          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <button
+              onClick={() => {
+                void loadLesson(0)
+                window.history.pushState(null, '', '/spark')
+                window.dispatchEvent(new PopStateEvent('popstate'))
+                setOpen(false)
+              }}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                borderRadius: '5px',
+                border: 'none',
+                background: 'rgba(226, 90, 28, 0.1)',
+                color: '#E25A1C',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span>← Back to Spark Home (/spark)</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 

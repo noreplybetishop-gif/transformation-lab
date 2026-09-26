@@ -64,7 +64,8 @@ export default function LessonPanel() {
   const allTasksDone = lesson.tasks.every((t) =>
     completedTasks.has(taskKey(lesson.id, t.id)),
   )
-  const isLast = lesson.id === getLastLessonId()
+  const isSpark = lesson.id >= 101
+  const isLast = isSpark ? lesson.id === 127 : lesson.id === getLastLessonId()
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: 'var(--color-surface)' }}>
@@ -75,16 +76,16 @@ export default function LessonPanel() {
         style={{
           padding: '16px 16px 12px',
           borderBottom: '1px solid var(--color-border)',
-          borderLeft: '2px solid var(--color-accent-orange)',
+          borderLeft: `2px solid ${isSpark ? '#E25A1C' : 'var(--color-accent-orange)'}`,
           background: 'var(--color-surface)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
           <span
             style={{
-              background: 'var(--color-accent-bg)',
-              border: '1px solid var(--color-accent-orange-dim)',
-              color: 'var(--color-accent-orange)',
+              background: isSpark ? 'rgba(226, 90, 28, 0.12)' : 'var(--color-accent-bg)',
+              border: `1px solid ${isSpark ? 'rgba(226, 90, 28, 0.35)' : 'var(--color-accent-orange-dim)'}`,
+              color: isSpark ? '#E25A1C' : 'var(--color-accent-orange)',
               fontSize: '0.625rem',
               fontFamily: 'JetBrains Mono, monospace',
               padding: '2px 7px',
@@ -94,7 +95,13 @@ export default function LessonPanel() {
               fontWeight: 600,
             }}
           >
-            {lesson.id >= 35
+            {lesson.id >= 101
+              ? lesson.id >= 128
+                ? `Spark Advanced · Lab ${lesson.id - 127} / 18`
+                : lesson.id >= 113
+                ? `Spark Intermediate · Lab ${lesson.id - 112} / 15`
+                : `Spark Basics · Lab ${lesson.id - 100} / 12`
+              : lesson.id >= 35
               ? `Advanced · Lab ${lesson.id - 34} / 25`
               : lesson.id >= 15
               ? `Intermediate · Lab ${lesson.id - 14} / 20`
@@ -259,13 +266,24 @@ export default function LessonPanel() {
                   width: '100%',
                   fontSize: '0.875rem',
                   padding: '11px',
+                  background: isSpark ? '#E25A1C' : undefined,
                 }}
               >
                 {lesson.id === 14
                   ? 'Complete Basics & Start Intermediate Course (Lab 1) →'
+                  : lesson.id === 34
+                    ? 'Complete Intermediate & Start Advanced Course (Lab 1) →'
+                  : lesson.id === 112
+                    ? 'Complete Spark Basics & Start Intermediate Course (Lab 13) →'
+                  : lesson.id >= 113 && lesson.id <= 126
+                    ? `Next Spark Lab (Lab ${lesson.id - 112 + 1}) →`
+                  : lesson.id >= 101 && lesson.id < 112
+                    ? `Next Spark Lab (Lab ${lesson.id - 100 + 1}) →`
+                  : lesson.id >= 35
+                    ? `Next Lab (Lab ${lesson.id - 34 + 1}) →`
                   : lesson.id >= 15
                     ? `Next Lab (Lab ${lesson.id - 14 + 1}) →`
-                    : t('lessonPanel.nextLesson')}
+                  : t('lessonPanel.nextLesson')}
               </button>
             )}
           </div>

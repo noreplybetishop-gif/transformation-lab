@@ -9,6 +9,8 @@ import { useGameStore } from '../store/gameStore'
 function detectLanguage(path: string): string {
   if (path.endsWith('.sql')) return 'sql'
   if (path.endsWith('.yml') || path.endsWith('.yaml')) return 'yaml'
+  if (path.endsWith('.py')) return 'python'
+  if (path.endsWith('.json')) return 'json'
   return 'plaintext'
 }
 

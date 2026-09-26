@@ -24,6 +24,8 @@ interface TerminalPanelProps {
 export default function TerminalPanel({ embedded = false, mobileMode = false, autoFocusInput = true }: TerminalPanelProps) {
   const { t } = useTranslation()
   const terminalHistory = useGameStore((s) => s.terminalHistory)
+  const currentLessonId = useGameStore((s) => s.currentLessonId)
+  const isSpark = currentLessonId >= 101
   const runCommand = useGameStore((s) => s.runCommand)
   const setDagSelection = useGameStore((s) => s.setDagSelection)
 
@@ -191,13 +193,13 @@ export default function TerminalPanel({ embedded = false, mobileMode = false, au
           style={{
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: mobileMode ? '0.875rem' : '0.75rem',
-            color: 'var(--color-accent-orange)',
+            color: isSpark ? '#E25A1C' : 'var(--color-accent-orange)',
             userSelect: 'none',
             flexShrink: 0,
             fontWeight: 600,
           }}
         >
-          dtlab&nbsp;❯&nbsp;
+          {isSpark ? 'spark-lab' : 'dtlab'}&nbsp;❯&nbsp;
         </span>
         <input
           ref={inputRef}

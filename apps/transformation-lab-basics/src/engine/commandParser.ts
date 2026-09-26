@@ -83,11 +83,25 @@ export function parseCommand(input: string): ParseResult {
   if (!trimmed) return { ok: false, error: 'Empty command' }
 
   const parts = tokenize(trimmed)
+  const lead = parts[0]
 
-  if (parts[0] !== 'dbt') {
+  if (lead === 'spark-submit' || lead === 'python' || lead === 'python3' || lead === 'pyspark' || lead === 'spark-sql') {
+    return {
+      ok: true,
+      command: {
+        type: lead === 'python3' ? 'python' : lead,
+        select: [],
+        exclude: [],
+        args: parts.slice(1),
+        raw: trimmed,
+      },
+    }
+  }
+
+  if (lead !== 'dbt') {
     return {
       ok: false,
-      error: `Commands start with "dbt", e.g. dbt run.`,
+      error: `Commands start with "spark-submit", "python", or "dbt", e.g. spark-submit job.py or dbt run.`,
     }
   }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useGameStore, lessonCompleted } from '../store/gameStore'
 
 type SparkStageId = 'basics' | 'intermediate' | 'advanced'
 
@@ -115,11 +116,35 @@ export default function SparkPage() {
   const [selectedStage, setSelectedStage] = useState<SparkStageId | null>(null)
   const [emailInput, setEmailInput] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+  const completedTasks = useGameStore((s) => s.completedTasks)
+  const loadLesson = useGameStore((s) => s.loadLesson)
+
+  // Basics: Labs 101 to 112
+  const basicsIds = Array.from({ length: 12 }, (_, i) => 101 + i)
+  const completedBasicsCount = basicsIds.filter((id) => lessonCompleted(completedTasks, id)).length
+  const hasBasicsProgress = completedBasicsCount > 0
+  const resumeBasicsId = basicsIds.find((id) => !lessonCompleted(completedTasks, id)) ?? 101
+
+  // Intermediate: Labs 113 to 127
+  const interIds = Array.from({ length: 15 }, (_, i) => 113 + i)
+  const completedInterCount = interIds.filter((id) => lessonCompleted(completedTasks, id)).length
+  const hasInterProgress = completedInterCount > 0
+  const resumeInterId = interIds.find((id) => !lessonCompleted(completedTasks, id)) ?? 113
+
+  const hasAnySparkProgress = hasBasicsProgress || hasInterProgress
 
   const activeStage = selectedStage ? SPARK_STAGES.find((s) => s.id === selectedStage) : null
 
   const handleNavigateToDbt = (lessonId: number = 0) => {
+    void loadLesson(lessonId)
     const target = lessonId === 0 ? '/' : `/lesson/${lessonId}`
+    window.history.pushState(null, '', target)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
+
+  const handleLaunchLab = (lessonId: number) => {
+    void loadLesson(lessonId)
+    const target = `/spark/lesson/${lessonId}`
     window.history.pushState(null, '', target)
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
@@ -201,7 +226,7 @@ export default function SparkPage() {
             <SparkFlameIcon size={14} color="#E25A1C" />
             <span>Apache Spark Lab</span>
             <span style={{ fontSize: '0.6875rem', padding: '1px 6px', borderRadius: '10px', background: '#E25A1C', color: '#fff', fontWeight: 700 }}>
-              New Course
+              27 Labs Live
             </span>
           </button>
         </div>
@@ -212,7 +237,7 @@ export default function SparkPage() {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', background: 'rgba(226, 90, 28, 0.1)', border: '1px solid rgba(226, 90, 28, 0.3)', marginBottom: '16px' }}>
           <SparkFlameIcon size={14} color="#E25A1C" />
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#E25A1C' }}>
-            New Track · Distributed Big Data & PySpark
+            Interactive Big Data Track · PySpark & Spark SQL
           </span>
         </div>
 
@@ -229,49 +254,66 @@ export default function SparkPage() {
           Master distributed in-memory computing with <strong style={{ color: '#E25A1C', fontWeight: 700 }}>Apache Spark</strong> & <strong style={{ color: 'var(--color-text)', fontWeight: 700 }}>PySpark</strong>.
         </p>
         <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9375rem', color: 'var(--color-text-muted)', margin: '0 auto', maxWidth: '600px', lineHeight: 1.55 }}>
-          From RDD fundamentals and DataFrame SQL transformations to Catalyst optimization, dynamic partition pruning, Adaptive Query Execution, and Structured Streaming.
+          From RDD fundamentals and DataFrame SQL transformations to analytical windowing, Broadcast Hash Joins, and Delta Lake Medallion architectures.
         </p>
 
         {/* Path: Basics ▸ Intermediate ▸ Advanced */}
         <nav className="home-path" aria-label="Spark Course Stages" style={{ marginTop: '28px' }}>
-          {SPARK_STAGES.map((stage) => (
-            <span key={stage.id} className="home-pstep home-pstep--current">
-              <span
-                className="home-pstep__name"
-                style={{
-                  borderColor: '#E25A1C',
-                  background: 'rgba(226, 90, 28, 0.08)',
-                  color: 'var(--color-text)',
-                }}
-              >
-                {stage.name} · {stage.labCount} Labs
+          {SPARK_STAGES.map((stage) => {
+            const isLive = stage.id === 'basics' || stage.id === 'intermediate'
+            return (
+              <span key={stage.id} className={`home-pstep ${isLive ? 'home-pstep--current' : 'home-pstep--soon'}`}>
+                <span
+                  className="home-pstep__name"
+                  style={{
+                    borderColor: isLive ? '#E25A1C' : undefined,
+                    background: isLive ? 'rgba(226, 90, 28, 0.08)' : undefined,
+                    color: isLive ? 'var(--color-text)' : undefined,
+                  }}
+                >
+                  {stage.name} · {stage.labCount} Labs {isLive ? '(Live)' : '(Upcoming)'}
+                </span>
               </span>
-            </span>
-          ))}
+            )
+          })}
         </nav>
       </section>
 
       {/* ── STAGE CARDS ───────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: '820px', margin: '0 auto', padding: '24px 32px 8px' }}>
+      <section style={{ maxWidth: '840px', margin: '0 auto', padding: '24px 32px 8px' }}>
         <div className="home-cards">
           {SPARK_STAGES.map((stage) => {
+            const isBasics = stage.id === 'basics'
+            const isInter = stage.id === 'intermediate'
+            const isLive = isBasics || isInter
+            const onStageClick = isBasics
+              ? () => handleLaunchLab(resumeBasicsId)
+              : isInter
+              ? () => handleLaunchLab(resumeInterId)
+              : () => setSelectedStage(stage.id)
+
+            const stageHasProgress = isBasics ? hasBasicsProgress : isInter ? hasInterProgress : false
+            const completedCount = isBasics ? completedBasicsCount : isInter ? completedInterCount : 0
+            const resumeNum = isBasics ? resumeBasicsId - 100 : resumeInterId - 112
+
             return (
               <div
                 key={stage.id}
                 className="home-card"
                 style={{
-                  borderColor: 'var(--color-border)',
+                  borderColor: isLive ? 'var(--color-border)' : 'var(--color-border-subtle)',
                   background: 'var(--color-surface)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
                   borderRadius: '12px',
                   padding: '22px',
+                  position: 'relative',
                 }}
               >
                 <span
                   className="home-card__edge"
-                  style={{ background: '#E25A1C' }}
+                  style={{ background: isLive ? '#E25A1C' : 'var(--color-border)' }}
                   aria-hidden="true"
                 />
 
@@ -285,14 +327,21 @@ export default function SparkPage() {
                       letterSpacing: '0.06em',
                       padding: '3px 8px',
                       borderRadius: '999px',
-                      background: 'rgba(226, 90, 28, 0.15)',
-                      color: '#E25A1C',
+                      background: isLive ? 'rgba(226, 90, 28, 0.15)' : 'rgba(128,128,128,0.1)',
+                      color: isLive ? '#E25A1C' : 'var(--color-text-muted)',
                     }}
                   >
                     Phase {stage.id === 'basics' ? '1' : stage.id === 'intermediate' ? '2' : '3'} · {stage.labCount} Labs
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
-                    Upcoming
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      color: isLive ? '#E25A1C' : 'var(--color-text-muted)',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {isLive ? '● LIVE' : 'Upcoming'}
                   </span>
                 </div>
 
@@ -321,37 +370,153 @@ export default function SparkPage() {
                   </ul>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                  <button
-                    onClick={() => setSelectedStage(stage.id)}
-                    style={{
-                      flex: 1,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #E25A1C',
-                      background: 'rgba(226, 90, 28, 0.1)',
-                      color: '#E25A1C',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '0.8125rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'background 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(226, 90, 28, 0.2)' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(226, 90, 28, 0.1)' }}
-                  >
-                    <span>View Syllabus ({stage.labCount} Labs)</span>
-                    <span>→</span>
-                  </button>
+                {isLive && (
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                    {stageHasProgress ? (
+                      <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
+                        ✓ {completedCount} / {stage.labCount} Labs Completed
+                      </span>
+                    ) : (
+                      `${stage.labCount} hands-on labs · Not started`
+                    )}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
+                  {isLive ? (
+                    <>
+                      <button
+                        onClick={onStageClick}
+                        style={{
+                          width: '100%',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: '#E25A1C',
+                          color: '#fff',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.875rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'filter 0.15s ease',
+                          boxShadow: '0 2px 8px rgba(226, 90, 28, 0.25)',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.1)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.filter = 'none' }}
+                      >
+                        <span>
+                          {isBasics
+                            ? (stageHasProgress ? `Continue Basics (Lab ${resumeNum})` : 'Start Basics (Lab 1)')
+                            : (stageHasProgress ? `Continue Intermediate (Lab ${resumeNum})` : 'Start Intermediate (Lab 13)')}
+                        </span>
+                        <span>→</span>
+                      </button>
+
+                      <button
+                        onClick={() => setSelectedStage(stage.id)}
+                        style={{
+                          width: '100%',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          padding: '7px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--color-border)',
+                          background: 'transparent',
+                          color: 'var(--color-text-secondary)',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#E25A1C'; e.currentTarget.style.color = '#E25A1C' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
+                      >
+                        <span>Description / Syllabus ({stage.labCount} Labs)</span>
+                        <span>☰</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedStage(stage.id)}
+                      style={{
+                        width: '100%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '9px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        background: 'transparent',
+                        color: 'var(--color-text-muted)',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-text-muted)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
+                    >
+                      <span>Description / Syllabus ({stage.labCount} Labs)</span>
+                      <span>→</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )
           })}
         </div>
+
+        {hasAnySparkProgress && (
+          <div style={{ marginTop: '16px', textAlign: 'center' }}>
+            <button
+              onClick={() => {
+                if (window.confirm('Reset all Spark lab progress? This clears completed tasks for Spark labs 1 to 27.')) {
+                  const state = useGameStore.getState()
+                  const filtered = new Set(
+                    [...state.completedTasks].filter((key) => {
+                      const lessonNum = Number(key.split('.')[0])
+                      return !(lessonNum >= 101 && lessonNum <= 199)
+                    })
+                  )
+                  useGameStore.setState({ completedTasks: filtered })
+                  try {
+                    const raw = localStorage.getItem('transformation-lab-progress')
+                    if (raw) {
+                      const parsed = JSON.parse(raw)
+                      parsed.completedTasks = [...filtered]
+                      localStorage.setItem('transformation-lab-progress', JSON.stringify(parsed))
+                    }
+                  } catch {
+                    /* ignore */
+                  }
+                  window.location.reload()
+                }
+              }}
+              style={{
+                background: 'transparent',
+                color: 'var(--color-text-muted)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '6px',
+                padding: '7px 14px',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+              }}
+            >
+              Restart Spark Progress
+            </button>
+          </div>
+        )}
 
         {/* ── EARLY ACCESS NOTIFICATION BANNER ────────────────────────────── */}
         <div
@@ -370,13 +535,13 @@ export default function SparkPage() {
         >
           <div style={{ flex: '1 1 320px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#E25A1C', fontWeight: 700, fontSize: '0.8125rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px', fontFamily: 'var(--font-mono)' }}>
-              <span>🚀</span> Be First to Test Interactive Spark
+              <span>🚀</span> 27 Hands-on Spark Labs are Live
             </div>
             <h4 style={{ margin: '0 0 6px', fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text)' }}>
-              Join the Spark Lab Beta
+              Basics & Intermediate PySpark Labs Active
             </h4>
             <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
-              We are actively porting real PySpark in-browser execution with WebAssembly. Register for early access as soon as the first lab launches.
+              Launch straight into RDDs, DataFrames, Windowing, Broadcast Joins, and Delta Lake above. Sign up below to get notified when Phase 3 (Advanced Catalyst & Streaming) drops!
             </p>
           </div>
 
@@ -571,24 +736,77 @@ export default function SparkPage() {
 
             {/* Modal Content - List of Labs */}
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {activeStage.topics.map((topic, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: '8px',
-                    background: 'var(--color-base)',
-                    border: '1px solid var(--color-border)',
-                  }}
-                >
-                  <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--color-text)', marginBottom: '3px' }}>
-                    {topic.title}
+              {activeStage.topics.map((topic, idx) => {
+                const labId = activeStage.id === 'basics' ? 101 + idx : activeStage.id === 'intermediate' ? 113 + idx : null
+                const isDone = labId ? lessonCompleted(completedTasks, labId) : false
+                const isPlayable = labId !== null
+
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: '8px',
+                      background: 'var(--color-base)',
+                      border: isDone ? '1px solid var(--color-success-border)' : '1px solid var(--color-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--color-text)' }}>
+                          {topic.title}
+                        </span>
+                        {isDone && (
+                          <span
+                            style={{
+                              fontSize: '0.6875rem',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              background: 'var(--color-success-bg)',
+                              color: 'var(--color-success)',
+                              fontWeight: 700,
+                            }}
+                          >
+                            ✓ Completed
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', lineHeight: 1.45 }}>
+                        {topic.desc}
+                      </div>
+                    </div>
+                    {isPlayable && (
+                      <button
+                        onClick={() => {
+                          setSelectedStage(null)
+                          handleLaunchLab(labId)
+                        }}
+                        style={{
+                          flexShrink: 0,
+                          background: isDone ? 'var(--color-base)' : '#E25A1C',
+                          color: isDone ? 'var(--color-text)' : '#fff',
+                          border: isDone ? '1px solid var(--color-border)' : 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          transition: 'filter 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.1)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.filter = 'none' }}
+                      >
+                        {isDone ? 'Review Lab' : 'Launch Lab →'}
+                      </button>
+                    )}
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', lineHeight: 1.45 }}>
-                    {topic.desc}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             {/* Modal Footer */}

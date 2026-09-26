@@ -326,6 +326,115 @@ function browserIncompatible(command: ParsedCommand): string | null {
   return null
 }
 
+function executeSparkCommand(
+  command: ParsedCommand,
+  state: RunnerState,
+): ExecutionResult {
+  const isSparkSql = command.type === 'spark-sql'
+  const scriptName = command.args[0] || ''
+  const lastRun: LastRunInfo = {
+    command: command.type,
+    selectedModels: scriptName ? [scriptName] : [],
+    usedSelect: false,
+    usedUpstream: false,
+    usedDownstream: false,
+    args: command.args,
+    raw: command.raw,
+  }
+
+  const lines: TerminalLine[] = []
+
+  if (isSparkSql) {
+    const eFlagIdx = command.args.indexOf('-e')
+    const query = eFlagIdx >= 0 ? command.args[eFlagIdx + 1] : ''
+    lines.push({ text: 'spark-sql (default)> ' + (query || 'SHOW TABLES;'), color: 'gray' })
+    lines.push({ text: 'Time taken: 0.142 seconds, Fetched 6 row(s)', color: 'green' })
+    lines.push({ text: '' })
+    return { lines, updatedState: { lastRun } }
+  }
+
+  if (!scriptName) {
+    lines.push({ text: 'Welcome to', color: 'gray' })
+    lines.push({ text: '      ____              __', color: 'yellow' })
+    lines.push({ text: '     / __/__  ___ _____/ /__', color: 'yellow' })
+    lines.push({ text: "    _\\ \\/ _ \\/ _ `/ __/  '_/", color: 'yellow' })
+    lines.push({ text: '   /__ / .__/\\_,_/_/ /_/\\_\\   version 3.5.1', color: 'yellow' })
+    lines.push({ text: '      /_/', color: 'yellow' })
+    lines.push({ text: '' })
+    lines.push({ text: 'Using Python version 3.12.0 (CPython, WebAssembly)', color: 'gray' })
+    lines.push({ text: 'SparkSession available as \'spark\', SparkContext available as \'sc\'.', color: 'green' })
+    lines.push({ text: '' })
+    return { lines, updatedState: { lastRun } }
+  }
+
+  const fileKey = Object.keys(state.files).find(
+    (k) => k === scriptName || k.endsWith('/' + scriptName),
+  )
+
+  if (!fileKey) {
+    lines.push({
+      text: `python: can't open file '${scriptName}': [Errno 2] No such file or directory`,
+      color: 'red',
+    })
+    lines.push({ text: '' })
+    return { lines, updatedState: { lastRun } }
+  }
+
+  const code = state.files[fileKey] || ''
+
+  const now = new Date()
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const ts = `${pad(now.getFullYear() % 100)}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+
+  lines.push({ text: `${ts} INFO SparkContext: Running Spark version 3.5.1`, color: 'gray' })
+  lines.push({ text: `${ts} INFO ResourceUtils: Primary master set to local[*]`, color: 'gray' })
+  lines.push({ text: `${ts} INFO SparkContext: Submitted application: ${scriptName}`, color: 'gray' })
+  lines.push({ text: `${ts} INFO DAGScheduler: Submitting 1 missing task from ResultStage 0`, color: 'gray' })
+
+  if (code.includes('printSchema()')) {
+    lines.push({ text: 'root', color: 'green' })
+    lines.push({ text: ' |-- id: integer (nullable = false)', color: 'green' })
+    lines.push({ text: ' |-- name: string (nullable = true)', color: 'green' })
+    lines.push({ text: ' |-- amount: double (nullable = true)', color: 'green' })
+    lines.push({ text: ' |-- created_at: timestamp (nullable = true)', color: 'green' })
+  }
+
+  if (code.includes('.show(') || code.includes('.show()')) {
+    lines.push({ text: '+---+--------------------+-------+-------------------+', color: 'green' })
+    lines.push({ text: '| id|                name| amount|         created_at|', color: 'green' })
+    lines.push({ text: '+---+--------------------+-------+-------------------+', color: 'green' })
+    lines.push({ text: '|  1|       Alice Johnson| 142.50|2024-01-10 10:00:00|', color: 'green' })
+    lines.push({ text: '|  2|          Bob Smith|  89.00|2024-01-12 11:30:00|', color: 'green' })
+    lines.push({ text: '|  3|      Carol Williams| 220.00|2024-01-15 14:15:00|', color: 'green' })
+    lines.push({ text: '+---+--------------------+-------+-------------------+', color: 'green' })
+  }
+
+  const printMatches = code.matchAll(/print\s*\(\s*(['"][^'"]*['"]|[^)]+)\s*\)/g)
+  for (const match of printMatches) {
+    let p = match[1].trim()
+    if ((p.startsWith('"') && p.endsWith('"')) || (p.startsWith("'") && p.endsWith("'"))) {
+      p = p.slice(1, -1)
+    }
+    lines.push({ text: p, color: 'green' })
+  }
+
+  lines.push({ text: `${ts} INFO SparkUI: Stopped Spark web UI at http://localhost:4040`, color: 'gray' })
+  lines.push({ text: `${ts} INFO SparkContext: Successfully stopped SparkContext`, color: 'gray' })
+  lines.push({ text: '' })
+
+  const ranModels = new Set(state.ranModels)
+  ranModels.add(scriptName)
+  ranModels.add(scriptName.replace(/\.py$/, ''))
+
+  return {
+    lines,
+    updatedState: {
+      ranModels,
+      lastRun,
+    },
+  }
+}
+
 export async function execute(
   command: ParsedCommand,
   state: RunnerState,
@@ -333,6 +442,15 @@ export async function execute(
    *  the returned `lines` omit the streamed output (only the error tail + trailing blank remain). */
   onLine?: (lines: TerminalLine[]) => void,
 ): Promise<ExecutionResult> {
+  const isSparkCmd =
+    command.type === 'spark-submit' ||
+    command.type === 'python' ||
+    command.type === 'pyspark' ||
+    command.type === 'spark-sql'
+
+  if (isSparkCmd) {
+    return executeSparkCommand(command, state)
+  }
   // Selector resolution stays static so lastRun + DAG highlighting are identical to before.
   const { sorted } = plan(state.files)
   const selected = applySelectors(sorted, command.select, command.exclude)
