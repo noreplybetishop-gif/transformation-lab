@@ -65,7 +65,7 @@ export default function LessonPanel() {
     completedTasks.has(taskKey(lesson.id, t.id)),
   )
   const isSpark = lesson.id >= 101
-  const isLast = isSpark ? lesson.id === 127 : lesson.id === getLastLessonId()
+  const isLast = isSpark ? lesson.id === 145 : lesson.id === getLastLessonId()
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: 'var(--color-surface)' }}>
@@ -275,6 +275,10 @@ export default function LessonPanel() {
                     ? 'Complete Intermediate & Start Advanced Course (Lab 1) →'
                   : lesson.id === 112
                     ? 'Complete Spark Basics & Start Intermediate Course (Lab 13) →'
+                  : lesson.id === 127
+                    ? 'Complete Spark Intermediate & Start Advanced Course (Lab 28) →'
+                  : lesson.id >= 128 && lesson.id <= 144
+                    ? `Next Spark Lab (Lab ${lesson.id - 127 + 1}) →`
                   : lesson.id >= 113 && lesson.id <= 126
                     ? `Next Spark Lab (Lab ${lesson.id - 112 + 1}) →`
                   : lesson.id >= 101 && lesson.id < 112

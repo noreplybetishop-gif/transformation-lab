@@ -59,7 +59,7 @@ import lesson56 from './lesson56'
 import lesson57 from './lesson57'
 import lesson58 from './lesson58'
 import lesson59 from './lesson59'
-import { sparkLessons, isSparkLesson, isSparkBasicsLesson, isSparkIntermediateLesson, SPARK_BASICS_COUNT, SPARK_INTERMEDIATE_COUNT } from './spark'
+import { sparkLessons } from './spark'
 
 export const dbtLessons: Lesson[] = [
   lesson00,
@@ -126,7 +126,17 @@ export const dbtLessons: Lesson[] = [
 
 export const lessons: Lesson[] = [...dbtLessons, ...sparkLessons]
 
-export { sparkLessons, isSparkLesson, isSparkBasicsLesson, isSparkIntermediateLesson, SPARK_BASICS_COUNT, SPARK_INTERMEDIATE_COUNT }
+export {
+  sparkLessons,
+  isSparkLesson,
+  isSparkBasicsLesson,
+  isSparkIntermediateLesson,
+  isSparkAdvancedLesson,
+  SPARK_BASICS_COUNT,
+  SPARK_INTERMEDIATE_COUNT,
+  SPARK_ADVANCED_COUNT,
+  SPARK_TOTAL_COUNT,
+} from './spark'
 
 export const BASICS_LESSONS_COUNT = 14
 export const INTERMEDIATE_LESSONS_COUNT = 20
@@ -149,7 +159,7 @@ export function getLessonById(id: number): Lesson | undefined {
 }
 
 export function getLastLessonId(isSpark = false): number {
-  if (isSpark) return 127
+  if (isSpark) return 145
   return 59
 }
 

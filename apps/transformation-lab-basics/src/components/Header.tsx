@@ -858,8 +858,9 @@ function SparkLessonSelector({ compact = false }: { compact?: boolean }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const isInter = currentLessonId >= 113
-  const labNum = isInter ? currentLessonId - 112 : currentLessonId - 100
+  const isAdv = currentLessonId >= 128
+  const isInter = currentLessonId >= 113 && currentLessonId < 128
+  const labNum = isAdv ? currentLessonId - 127 : isInter ? currentLessonId - 112 : currentLessonId - 100
 
   return (
     <div ref={containerRef} style={{ position: 'relative', minWidth: 0, flex: compact ? 1 : 'initial' }}>
@@ -880,7 +881,7 @@ function SparkLessonSelector({ compact = false }: { compact?: boolean }) {
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
       >
         <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-sans)' }}>
-          {isInter ? 'Spark Inter' : 'Spark Basics'}
+          {isAdv ? 'Spark Adv' : isInter ? 'Spark Inter' : 'Spark Basics'}
         </span>
         <span
           className="font-semibold px-2.5 py-0.5 rounded"
@@ -1058,9 +1059,63 @@ function SparkLessonSelector({ compact = false }: { compact?: boolean }) {
             )
           })}
 
-          <div style={{ margin: '8px 0 3px', borderTop: '1px solid var(--color-border)', paddingTop: '8px', paddingLeft: '8px', paddingRight: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-            Phase 3: Advanced (18 Labs - Upcoming)
+          <div style={{ margin: '8px 0 3px', borderTop: '1px solid var(--color-border)', paddingTop: '8px', paddingLeft: '8px', paddingRight: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.625rem', color: '#E25A1C', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Phase 3: Advanced (Labs 28–45)
           </div>
+          {sparkLessons.slice(27, 45).map((l) => {
+            const isCurrent = l.id === currentLessonId
+            const isCompleted = lessonCompleted(completedTasks, l.id)
+            const labIdx = l.id - 127
+            return (
+              <button
+                key={l.id}
+                onClick={() => { void loadLesson(l.id); setOpen(false) }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '5px 8px',
+                  background: isCurrent ? 'rgba(226, 90, 28, 0.12)' : 'transparent',
+                  border: isCurrent ? '1px solid rgba(226, 90, 28, 0.3)' : 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  textAlign: 'left' as const,
+                }}
+                onMouseEnter={(e) => { if (!isCurrent) e.currentTarget.style.background = 'rgba(128,128,128,0.08)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isCurrent ? 'rgba(226, 90, 28, 0.12)' : 'transparent' }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.625rem',
+                    color: isCurrent ? '#E25A1C' : isCompleted ? 'var(--color-success)' : 'var(--color-muted)',
+                    width: '32px',
+                    textAlign: 'right' as const,
+                    flexShrink: 0,
+                    fontWeight: isCurrent ? 700 : 400,
+                  }}
+                >
+                  L{labIdx}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '0.75rem',
+                    color: isCurrent ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    flex: 1,
+                  }}
+                >
+                  {l.title.replace(/^Spark Lab \d+ · /, '')}
+                </span>
+                {isCompleted && (
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8.5l3 3 7-7" stroke="var(--color-success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            )
+          })}
 
           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <button

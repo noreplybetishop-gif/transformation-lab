@@ -73,3 +73,19 @@ export const PRODUCTS_CSV = `product_id,name,category,price,inventory_count
 105,Noise Cancelling Earbuds,Electronics,79.99,650
 106,Cast Iron Skillet 10-inch,Kitchen,38.50,300`
 
+export const STREAMING_TRANSACTIONS_CSV = `tx_id,user_id,card_id,amount,merchant,location,timestamp
+TX1001,1,C401,35.50,CoffeeShop,New York,2024-04-01 12:00:10
+TX1002,2,C402,1200.00,LuxuryJewelry,Miami,2024-04-01 12:01:25
+TX1003,1,C401,14.20,SubwayTransit,New York,2024-04-01 12:03:00
+TX1004,3,C403,850.00,ElectronicsSuperstore,Las Vegas,2024-04-01 12:04:15
+TX1005,4,C404,4.50,CornerMart,Chicago,2024-04-01 12:05:40
+TX1006,2,C402,1450.00,LuxuryJewelry,Miami,2024-04-01 12:06:10
+TX1007,5,C405,62.00,GasStation,Austin,2024-04-01 12:07:05
+TX1008,1,C401,2500.00,OffshoreTransfer,Unknown,2024-04-01 12:08:30`
+
+export const FRAUD_BLACKLIST_CSV = `merchant,risk_score,category
+OffshoreTransfer,0.98,HIGH_RISK
+LuxuryJewelry,0.75,MONITORED
+CryptoExchange,0.95,HIGH_RISK
+UnknownKiosk,0.85,SUSPICIOUS`
+

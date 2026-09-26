@@ -23,8 +23,9 @@ export default function CourseComplete() {
 
   const loadLesson = useGameStore((s) => s.loadLesson)
   const currentLessonId = useGameStore((s) => s.currentLessonId)
-  const isAdvanced = currentLessonId >= 35
-  const isIntermediate = currentLessonId >= 15 && currentLessonId < 35
+  const isSpark = currentLessonId >= 101
+  const isAdvanced = !isSpark && currentLessonId >= 35
+  const isIntermediate = !isSpark && currentLessonId >= 15 && currentLessonId < 35
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://transformation-lab.datagym.io')}`
 
   return (
@@ -57,7 +58,7 @@ export default function CourseComplete() {
 
       <div
         style={{
-          color: 'var(--color-accent-orange)',
+          color: isSpark ? '#E25A1C' : 'var(--color-accent-orange)',
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: '0.6875rem',
           textTransform: 'uppercase',
@@ -66,7 +67,9 @@ export default function CourseComplete() {
           marginBottom: '8px',
         }}
       >
-        {isAdvanced
+        {isSpark
+          ? 'APACHE SPARK COURSE COMPLETE (45 LABS MASTERED)'
+          : isAdvanced
           ? 'ADVANCED COURSE COMPLETE'
           : isIntermediate
           ? 'INTERMEDIATE LEVEL COMPLETE'
@@ -82,7 +85,9 @@ export default function CourseComplete() {
           lineHeight: 1.3,
         }}
       >
-        {isAdvanced
+        {isSpark
+          ? "You've mastered Apache Spark, Lakehouses & Structured Streaming!"
+          : isAdvanced
           ? "You've mastered advanced analytics engineering & enterprise dbt!"
           : isIntermediate
           ? "You've mastered intermediate dbt engineering!"
@@ -96,7 +101,9 @@ export default function CourseComplete() {
           lineHeight: 1.6,
         }}
       >
-        {isAdvanced
+        {isSpark
+          ? "You've built and orchestrated production-grade big data systems: RDD lineage, DataFrame transformations, analytical windowing, Broadcast Hash Joins, Delta Lake Medallion pipelines, Catalyst query plans, Adaptive Query Execution (AQE), Dynamic Partition Pruning, and real-time Structured Streaming with event-time watermarking."
+          : isAdvanced
           ? "You've built and orchestrated production-grade data platforms: high-performance merge strategies, custom generic test macros, unit testing, schema enforcement contracts, Semantic Layer metrics, exposures, and zero-downtime blue-green deployments."
           : isIntermediate
           ? "You've tackled the real patterns production teams lean on: incremental processing, slowly changing dimensions (SCD2), modular Jinja macros, multi-schema architecture, and model contracts."
@@ -105,7 +112,40 @@ export default function CourseComplete() {
 
       <div style={{ marginBottom: '12px' }}>
         <SubLabel>{t('courseComplete.whatNext')}</SubLabel>
-        {isAdvanced ? (
+        {isSpark ? (
+          <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <NextStep>
+              <span>Deploy to cloud clusters on AWS EMR, GCP Dataproc, or Databricks: </span>
+              <ExtLink href="https://spark.apache.org/docs/latest/cloud-integration.html">Spark Cloud Integration Guide</ExtLink>
+            </NextStep>
+            <NextStep>
+              <span>Build open lakehouse architectures with Delta Lake: </span>
+              <ExtLink href="https://docs.delta.io/">Delta Lake Documentation</ExtLink>
+            </NextStep>
+            <NextStep>
+              <span>Explore data warehouse modeling in our 59-lab dbt course: </span>
+              <button
+                onClick={() => {
+                  void loadLesson(0)
+                  window.history.pushState(null, '', '/')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-accent-orange)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                  fontSize: '0.8125rem',
+                }}
+              >
+                Switch to dbt Lab Course (Start Lesson 1)
+              </button>
+            </NextStep>
+          </ul>
+        ) : isAdvanced ? (
           <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <NextStep>
               <span>Deploy to enterprise production with automated CI: </span>

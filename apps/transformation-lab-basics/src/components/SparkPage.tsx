@@ -131,7 +131,13 @@ export default function SparkPage() {
   const hasInterProgress = completedInterCount > 0
   const resumeInterId = interIds.find((id) => !lessonCompleted(completedTasks, id)) ?? 113
 
-  const hasAnySparkProgress = hasBasicsProgress || hasInterProgress
+  // Advanced: Labs 128 to 145
+  const advIds = Array.from({ length: 18 }, (_, i) => 128 + i)
+  const completedAdvCount = advIds.filter((id) => lessonCompleted(completedTasks, id)).length
+  const hasAdvProgress = completedAdvCount > 0
+  const resumeAdvId = advIds.find((id) => !lessonCompleted(completedTasks, id)) ?? 128
+
+  const hasAnySparkProgress = hasBasicsProgress || hasInterProgress || hasAdvProgress
 
   const activeStage = selectedStage ? SPARK_STAGES.find((s) => s.id === selectedStage) : null
 
@@ -226,7 +232,7 @@ export default function SparkPage() {
             <SparkFlameIcon size={14} color="#E25A1C" />
             <span>Apache Spark Lab</span>
             <span style={{ fontSize: '0.6875rem', padding: '1px 6px', borderRadius: '10px', background: '#E25A1C', color: '#fff', fontWeight: 700 }}>
-              27 Labs Live
+              45 Labs Live
             </span>
           </button>
         </div>
@@ -254,24 +260,23 @@ export default function SparkPage() {
           Master distributed in-memory computing with <strong style={{ color: '#E25A1C', fontWeight: 700 }}>Apache Spark</strong> & <strong style={{ color: 'var(--color-text)', fontWeight: 700 }}>PySpark</strong>.
         </p>
         <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9375rem', color: 'var(--color-text-muted)', margin: '0 auto', maxWidth: '600px', lineHeight: 1.55 }}>
-          From RDD fundamentals and DataFrame SQL transformations to analytical windowing, Broadcast Hash Joins, and Delta Lake Medallion architectures.
+          From RDD fundamentals and DataFrame SQL transformations to analytical windowing, Broadcast Hash Joins, Delta Lake Medallion architectures, and real-time Structured Streaming.
         </p>
 
         {/* Path: Basics ▸ Intermediate ▸ Advanced */}
         <nav className="home-path" aria-label="Spark Course Stages" style={{ marginTop: '28px' }}>
           {SPARK_STAGES.map((stage) => {
-            const isLive = stage.id === 'basics' || stage.id === 'intermediate'
             return (
-              <span key={stage.id} className={`home-pstep ${isLive ? 'home-pstep--current' : 'home-pstep--soon'}`}>
+              <span key={stage.id} className="home-pstep home-pstep--current">
                 <span
                   className="home-pstep__name"
                   style={{
-                    borderColor: isLive ? '#E25A1C' : undefined,
-                    background: isLive ? 'rgba(226, 90, 28, 0.08)' : undefined,
-                    color: isLive ? 'var(--color-text)' : undefined,
+                    borderColor: '#E25A1C',
+                    background: 'rgba(226, 90, 28, 0.08)',
+                    color: 'var(--color-text)',
                   }}
                 >
-                  {stage.name} · {stage.labCount} Labs {isLive ? '(Live)' : '(Upcoming)'}
+                  {stage.name} · {stage.labCount} Labs (Live)
                 </span>
               </span>
             )
@@ -285,16 +290,16 @@ export default function SparkPage() {
           {SPARK_STAGES.map((stage) => {
             const isBasics = stage.id === 'basics'
             const isInter = stage.id === 'intermediate'
-            const isLive = isBasics || isInter
+            const isLive = true
             const onStageClick = isBasics
               ? () => handleLaunchLab(resumeBasicsId)
               : isInter
               ? () => handleLaunchLab(resumeInterId)
-              : () => setSelectedStage(stage.id)
+              : () => handleLaunchLab(resumeAdvId)
 
-            const stageHasProgress = isBasics ? hasBasicsProgress : isInter ? hasInterProgress : false
-            const completedCount = isBasics ? completedBasicsCount : isInter ? completedInterCount : 0
-            const resumeNum = isBasics ? resumeBasicsId - 100 : resumeInterId - 112
+            const stageHasProgress = isBasics ? hasBasicsProgress : isInter ? hasInterProgress : hasAdvProgress
+            const completedCount = isBasics ? completedBasicsCount : isInter ? completedInterCount : completedAdvCount
+            const resumeNum = isBasics ? resumeBasicsId - 100 : isInter ? resumeInterId - 112 : resumeAdvId - 127
 
             return (
               <div
@@ -411,7 +416,9 @@ export default function SparkPage() {
                         <span>
                           {isBasics
                             ? (stageHasProgress ? `Continue Basics (Lab ${resumeNum})` : 'Start Basics (Lab 1)')
-                            : (stageHasProgress ? `Continue Intermediate (Lab ${resumeNum})` : 'Start Intermediate (Lab 13)')}
+                            : isInter
+                            ? (stageHasProgress ? `Continue Intermediate (Lab ${resumeNum})` : 'Start Intermediate (Lab 13)')
+                            : (stageHasProgress ? `Continue Advanced (Lab ${resumeNum})` : 'Start Advanced (Lab 28)')}
                         </span>
                         <span>→</span>
                       </button>
@@ -479,7 +486,7 @@ export default function SparkPage() {
           <div style={{ marginTop: '16px', textAlign: 'center' }}>
             <button
               onClick={() => {
-                if (window.confirm('Reset all Spark lab progress? This clears completed tasks for Spark labs 1 to 27.')) {
+                if (window.confirm('Reset all Spark lab progress? This clears completed tasks for Spark labs 1 to 45.')) {
                   const state = useGameStore.getState()
                   const filtered = new Set(
                     [...state.completedTasks].filter((key) => {
@@ -535,13 +542,13 @@ export default function SparkPage() {
         >
           <div style={{ flex: '1 1 320px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#E25A1C', fontWeight: 700, fontSize: '0.8125rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px', fontFamily: 'var(--font-mono)' }}>
-              <span>🚀</span> 27 Hands-on Spark Labs are Live
+              <span>🚀</span> 45 Hands-on Spark Labs are Live
             </div>
             <h4 style={{ margin: '0 0 6px', fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text)' }}>
-              Basics & Intermediate PySpark Labs Active
+              Basics, Intermediate & Advanced PySpark Labs Active
             </h4>
             <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
-              Launch straight into RDDs, DataFrames, Windowing, Broadcast Joins, and Delta Lake above. Sign up below to get notified when Phase 3 (Advanced Catalyst & Streaming) drops!
+              Launch straight into RDDs, DataFrames, Windowing, Delta Lake Medallion pipelines, Catalyst query optimization, Dynamic Partition Pruning, and Structured Streaming above!
             </p>
           </div>
 
@@ -737,7 +744,12 @@ export default function SparkPage() {
             {/* Modal Content - List of Labs */}
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {activeStage.topics.map((topic, idx) => {
-                const labId = activeStage.id === 'basics' ? 101 + idx : activeStage.id === 'intermediate' ? 113 + idx : null
+                const labId =
+                  activeStage.id === 'basics'
+                    ? 101 + idx
+                    : activeStage.id === 'intermediate'
+                    ? 113 + idx
+                    : 128 + idx
                 const isDone = labId ? lessonCompleted(completedTasks, labId) : false
                 const isPlayable = labId !== null
 

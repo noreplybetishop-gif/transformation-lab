@@ -399,6 +399,27 @@ function executeSparkCommand(
     lines.push({ text: ' |-- created_at: timestamp (nullable = true)', color: 'green' })
   }
 
+  if (code.includes('explain(') || code.includes('.explain()')) {
+    lines.push({ text: '== Parsed Logical Plan ==', color: 'yellow' })
+    lines.push({ text: "'Filter ('amount > 50.0)", color: 'green' })
+    lines.push({ text: "+- 'Aggregate ['country], ['country, sum('amount) AS total#12]", color: 'green' })
+    lines.push({ text: '== Analyzed Logical Plan ==', color: 'yellow' })
+    lines.push({ text: 'country: string, total: double', color: 'green' })
+    lines.push({ text: '== Optimized Logical Plan ==', color: 'yellow' })
+    lines.push({ text: 'Aggregate [country#4], [country#4, sum(amount#2) AS total#12]', color: 'green' })
+    lines.push({ text: '+- Filter (isnotnull(amount#2) AND (amount#2 > 50.0))', color: 'green' })
+    lines.push({ text: '== Physical Plan ==', color: 'yellow' })
+    lines.push({ text: '*(2) HashAggregate(keys=[country#4], functions=[sum(amount#2)])', color: 'green' })
+    lines.push({ text: '+- Exchange hashpartitioning(country#4, 200), ENSURE_REQUIREMENTS', color: 'green' })
+    lines.push({ text: '   +- *(1) HashAggregate(keys=[country#4], functions=[partial_sum(amount#2)])', color: 'green' })
+    lines.push({ text: '      +- *(1) Filter (isnotnull(amount#2) AND (amount#2 > 50.0))', color: 'green' })
+  }
+
+  if (code.includes('writeStream') || code.includes('readStream')) {
+    lines.push({ text: `${ts} INFO MicroBatchExecution: Starting [id = c94b281f, runId = 8d39f41a]`, color: 'gray' })
+    lines.push({ text: `${ts} INFO MicroBatchExecution: Committed batch 0 to Delta/Console sink [8 records processed, 452 rec/sec]`, color: 'green' })
+  }
+
   if (code.includes('.show(') || code.includes('.show()')) {
     lines.push({ text: '+---+--------------------+-------+-------------------+', color: 'green' })
     lines.push({ text: '| id|                name| amount|         created_at|', color: 'green' })
